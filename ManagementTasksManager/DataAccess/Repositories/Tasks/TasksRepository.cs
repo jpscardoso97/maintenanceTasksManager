@@ -24,6 +24,13 @@
             return Task.FromResult(Tasks.FirstOrDefault(task => task.Id == id));
         }
 
+        public Task<MaintenanceTask> CreateTask(MaintenanceTask task)
+        {
+            throw new NotImplementedException();
+            
+            //TODO encrypt Task Summary data
+        }
+
         private static IEnumerable<MaintenanceTask> Tasks = new[]
         {
             new MaintenanceTask

@@ -11,5 +11,7 @@
         public Task<IEnumerable<MaintenanceTask>> OwnTasks(string owner);
 
         public Task<MaintenanceTask> GetTask(string id);
+        
+        public Task<MaintenanceTask> CreateTask(MaintenanceTask task);
     }
 }

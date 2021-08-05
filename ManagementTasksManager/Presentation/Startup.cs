@@ -3,6 +3,8 @@ namespace ManagementTasksManager
     using System.Text;
     using ApplicationService.Services;
     using ApplicationService.Services.Interfaces;
+    using DataAccess.Repositories.Tasks;
+    using DataAccess.Repositories.Tasks.Interfaces;
     using DataAccess.Repositories.Users;
     using DataAccess.Repositories.Users.Interfaces;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,7 +60,9 @@ namespace ManagementTasksManager
             services
                 .AddScoped<TokenService>()
                 .AddScoped<IUsersService, UsersService>()
-                .AddSingleton<IUsersRepository, UsersRepository>();
+                .AddScoped<ITasksService, TasksService>()
+                .AddSingleton<IUsersRepository, UsersRepository>()
+                .AddSingleton<ITasksRepository, TasksRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

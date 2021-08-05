@@ -8,7 +8,7 @@
         
         public string Owner { get; set; }
         
-        public Summary Summary { get; set; }
+        public string Summary { get; set; }
         
         public DateTime Date { get; set; }
     }
