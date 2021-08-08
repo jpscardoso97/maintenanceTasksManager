@@ -18,14 +18,14 @@
         {
             try
             {
-                var rabbitMQConfig = configuration.GetSection("RabbitMQ");
-                
+                var rabbitMqConfig = configuration.GetSection("RabbitMQ");
+
                 var factory = new ConnectionFactory()
                 {
-                    HostName = rabbitMQConfig["Host"],
-                    UserName = rabbitMQConfig["Username"],
-                    Password = rabbitMQConfig["Password"],
-                    Port = int.TryParse(rabbitMQConfig["Port"], out int port) ? port : 5672
+                    HostName = rabbitMqConfig["Host"],
+                    UserName = rabbitMqConfig["Username"],
+                    Password = rabbitMqConfig["Password"],
+                    Port = int.TryParse(rabbitMqConfig["Port"], out int port) ? port : 5672
                 };
 
                 this._connection = factory.CreateConnection();
@@ -57,6 +57,8 @@
         public void Register()
         {
             Console.WriteLine($"RabbitMQListener register,routeKey:{RouteKey}");
+
+            if (_channel == null) return;
 
             _channel.ExchangeDeclare(exchange: "message", type: "topic");
             _channel.QueueDeclare(queue: QueueName, exclusive: false);

@@ -7,6 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
 COPY MaintenanceTasksManager.sln ./
 COPY ApplicationService/*.csproj ./ApplicationService/
+COPY Messaging/*.csproj ./Messaging/
 COPY DataAccess/*.csproj ./DataAccess/
 COPY Presentation/*.csproj ./Presentation/
 COPY Tests.ApplicationService/*.csproj ./Tests.ApplicationService/
@@ -15,6 +16,9 @@ COPY Tests.Presentation/*.csproj ./Tests.Presentation/
 RUN dotnet restore
 COPY . .
 WORKDIR /src/ApplicationService
+RUN dotnet build -c Release -o /app
+
+WORKDIR /src/Messaging
 RUN dotnet build -c Release -o /app
 
 WORKDIR /src/DataAccess

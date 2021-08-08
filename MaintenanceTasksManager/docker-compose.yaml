@@ -8,14 +8,15 @@ services:
       - dbdata:/var/lib/mysql
       - "~/sql-scripts/setup.sql:/docker-entrypoint-initdb.d/1.sql"
     environment:
-       MYSQL_RANDOM_ROOT_PASSWORD: 1
-       MYSQL_DATABASE: maintenanceTasks
+       MYSQL_ROOT_PASSWORD: root
+       MYSQL_DATABASE: appDb
        MYSQL_USER: dbuser
        MYSQL_PASSWORD: dbuserpassword
     restart: always
    app:
      depends_on:
        - db
+       - rabbitmq
      build:
        context: .
        dockerfile: Dockerfile
@@ -23,5 +24,17 @@ services:
        - "5000:5000"
        - "5001:5001"
      restart: always
+   rabbitmq:
+     image: rabbitmq:3-management
+     hostname: "rabbitmq"
+     labels:
+         NAME: "rabbitmq"
+     ports:
+       - "4369:4369"
+       - "5671:5671"
+       - "5672:5672"
+       - "25672:25672"
+       - "15671:15671"
+       - "15672:15672"
 volumes:
     dbdata:

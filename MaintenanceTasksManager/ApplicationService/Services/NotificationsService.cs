@@ -1,7 +1,7 @@
 ﻿namespace ApplicationService.Services
 {
     using ApplicationService.Services.Interfaces;
-    using Messaging.Interfaces;
+    using global::Messaging.Interfaces;
 
     public class NotificationsService : INotificationsService
     {

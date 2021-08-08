@@ -14,17 +14,24 @@
 
         public RabbitMQClient(IConfiguration configuration)
         {
-            var rabbitMQConfig = configuration.GetSection("RabbitMQ");
-
-            var factory = new ConnectionFactory()
+            try
             {
-                HostName = rabbitMQConfig["Host"],
-                UserName = rabbitMQConfig["Username"],
-                Password = rabbitMQConfig["Password"],
-                Port = int.TryParse(rabbitMQConfig["Port"], out int port) ? port : 5672
-            };
-            var connection = factory.CreateConnection();
-            _channel = connection.CreateModel();
+                var rabbitMQConfig = configuration.GetSection("RabbitMQ");
+
+                var factory = new ConnectionFactory()
+                {
+                    HostName = rabbitMQConfig["Host"],
+                    UserName = rabbitMQConfig["Username"],
+                    Password = rabbitMQConfig["Password"],
+                    Port = int.TryParse(rabbitMQConfig["Port"], out int port) ? port : 5672
+                };
+                var connection = factory.CreateConnection();
+                _channel = connection.CreateModel();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RabbitListener init error,ex:{ex.Message}");
+            }
         }
 
         public virtual void PushMessage(string routingKey, object message)

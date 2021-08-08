@@ -1,6 +1,7 @@
 namespace ManagementTasksManager
 {
     using System.Text;
+    using ApplicationService.Messaging;
     using ApplicationService.Services;
     using ApplicationService.Services.Interfaces;
     using DataAccess;
@@ -8,6 +9,8 @@ namespace ManagementTasksManager
     using DataAccess.Repositories.Tasks.Interfaces;
     using DataAccess.Repositories.Users;
     using DataAccess.Repositories.Users.Interfaces;
+    using Messaging;
+    using Messaging.Interfaces;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -15,6 +18,7 @@ namespace ManagementTasksManager
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Options;
     using Microsoft.IdentityModel.Tokens;
     using Microsoft.OpenApi.Models;
 
@@ -30,6 +34,8 @@ namespace ManagementTasksManager
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHostedService<NewTaskNotificationListener>();
+            
             services.AddDbContext<ApplicationDbContext>(
                 options => options.UseMySQL(Configuration.GetConnectionString("DefaultConnection")));  
 
@@ -62,8 +68,9 @@ namespace ManagementTasksManager
                 .AddScoped<ITokenService, TokenService>()
                 .AddScoped<IAuthService, AuthService>()
                 .AddScoped<ITasksService, TasksService>()
-                .AddSingleton<IUsersRepository, UsersRepository>()
-                .AddSingleton<ITasksRepository, TasksRepository>();
+                .AddScoped<IRabbitMQClient, RabbitMQClient>()
+                .AddScoped<IUsersRepository, UsersRepository>()
+                .AddScoped<ITasksRepository, TasksRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
