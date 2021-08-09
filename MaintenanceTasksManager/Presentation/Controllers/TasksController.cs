@@ -1,7 +1,7 @@
 ﻿namespace ManagementTasksManager.Controllers
 {
     using System;
-    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using ApplicationService.Services.Interfaces;
     using ManagementTasksManager.Models;
@@ -25,33 +25,33 @@
         [HttpGet]
         [Route("tasks")]
         [Authorize(Roles = "manager")]
-        public async Task<ActionResult<IEnumerable<MaintenanceTask>>> Tasks()
+        public async Task<ActionResult<dynamic>> Tasks()
         {
             var tasks = await _tasksService.GetTasks();
 
             if (tasks == null)
-                return Problem();
+                return StatusCode(500);
 
-            return Ok(tasks);
+            return tasks.ToList();
         }
 
         [HttpGet]
         [Route("mytasks")]
         [Authorize(Roles = "technician")]
-        public async Task<ActionResult<IEnumerable<MaintenanceTask>>> OwnTasks()
+        public async Task<ActionResult<dynamic>> OwnTasks()
         {
             var tasks = await _tasksService.OwnTasks(User.Identity.Name);
 
             if (tasks == null)
-                return Problem("Error getting technician's tasks");
+                return StatusCode(500);
 
-            return Ok(tasks);
+            return tasks.ToList();
         }
 
         [HttpPost]
         [Route("task/create")]
         [Authorize(Roles = "technician")]
-        public async Task<ActionResult<IEnumerable<MaintenanceTask>>> CreateTasks([FromBody] MaintenanceTask model)
+        public async Task<ActionResult<dynamic>> CreateTask([FromBody] MaintenanceTask model)
         {
             try
             {
@@ -62,11 +62,11 @@
                     Summary = model.Summary
                 };
 
-                return Ok(await _tasksService.CreateTask(newTask));
+                return await _tasksService.CreateTask(newTask);
             }
             catch (ArgumentException e)
             {
-                return Problem(e.Message);
+                return StatusCode(500, e.Message);
             }
         }
     }

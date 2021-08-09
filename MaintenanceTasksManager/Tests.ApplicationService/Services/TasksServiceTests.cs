@@ -5,6 +5,7 @@ namespace Tests.ApplicationService.Services
     using DataAccess.Repositories.Tasks.Interfaces;
     using global::ApplicationService.Models.Tasks;
     using global::ApplicationService.Services;
+    using Messaging.Interfaces;
     using Moq;
     using MoqMeUp;
     using Xunit;
@@ -14,6 +15,8 @@ namespace Tests.ApplicationService.Services
         private const string LongSummary =
             "mdoaismdoaismdoiamsodimaosidmaosiasdjoiasjdasddmoaismdoiamsodiasjdnoas8dsdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjdmdoaismdoaismdoiamsodimaosidmaosidmoaismdoiamsodiasjd";
 
+        private const string RoutingKey = "task.created";
+        
         public TasksServiceTests()
         {
             this.Get<ITasksRepository>()
@@ -31,6 +34,8 @@ namespace Tests.ApplicationService.Services
             // Act and Assert
             Assert.ThrowsAsync<ArgumentException>(async () => await this.Build().CreateTask(CreateTask(summary)));
             this.Get<ITasksRepository>()
+                .VerifyNoOtherCalls();
+            this.Get<IRabbitMQClient>()
                 .VerifyNoOtherCalls();
         }
 
@@ -50,6 +55,8 @@ namespace Tests.ApplicationService.Services
             Assert.Equal(task.Summary, result.Summary);
             this.Get<ITasksRepository>()
                 .Verify(repo => repo.CreateTaskAsync(It.IsAny<DataAccess.Models.MaintenanceTask>()), Times.Once);
+            this.Get<IRabbitMQClient>()
+                .Verify(rabbitMq => rabbitMq.PushMessage(RoutingKey, $"The tech {task.Owner} performed the task {task.Id} on date {task.Date.ToShortDateString()}"));
         }
 
         [Fact]
@@ -67,6 +74,8 @@ namespace Tests.ApplicationService.Services
             Assert.Null(result);
             this.Get<ITasksRepository>()
                 .Verify(repo => repo.CreateTaskAsync(It.IsAny<DataAccess.Models.MaintenanceTask>()), Times.Once);
+            this.Get<IRabbitMQClient>()
+                .VerifyNoOtherCalls();
         }
 
         private MaintenanceTask CreateTask(string summary) => new()

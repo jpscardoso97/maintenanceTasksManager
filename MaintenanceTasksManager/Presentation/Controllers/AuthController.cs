@@ -24,7 +24,7 @@
 
             if (auth == default)
             {
-                return NotFound("Invalid login");
+                return Forbid("Invalid login");
             }
 
             return auth;
