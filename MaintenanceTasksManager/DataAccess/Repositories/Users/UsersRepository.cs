@@ -20,6 +20,8 @@
             var users = new List<User>();
             users.Add(new User { Id = 1, Username = "manager", Password = "manager", Role = "manager" });
             users.Add(new User { Id = 2, Username = "tech1", Password = "tech1", Role = "technician" });
+            users.Add(new User { Id = 2, Username = "tech2", Password = "tech2", Role = "technician" });
+            users.Add(new User { Id = 2, Username = "tech3", Password = "tech3", Role = "technician" });
             return Task.FromResult(users.Where(x => x.Username.ToLower() == username.ToLower() && x.Password == x.Password).FirstOrDefault());
         }
     }

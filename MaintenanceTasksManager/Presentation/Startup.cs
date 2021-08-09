@@ -35,12 +35,12 @@ namespace ManagementTasksManager
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHostedService<NewTaskNotificationListener>();
-            
+
             services.AddDbContext<ApplicationDbContext>(
-                options => options.UseMySQL(Configuration.GetConnectionString("DefaultConnection")));  
+                options => options.UseMySQL(Configuration.GetConnectionString("DefaultConnection"), x => x.MigrationsAssembly("DataAccess")));
 
             services.AddControllers();
-            
+
             services.AddAuthentication(x =>
                 {
                     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -53,7 +53,9 @@ namespace ManagementTasksManager
                     x.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration[TokenService.SecretConfigKey])),
+                        IssuerSigningKey =
+                            new SymmetricSecurityKey(
+                                Encoding.ASCII.GetBytes(Configuration[TokenService.SecretConfigKey])),
                         ValidateIssuer = false,
                         ValidateAudience = false
                     };
@@ -61,7 +63,7 @@ namespace ManagementTasksManager
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "Presentation", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Presentation", Version = "v1" });
             });
 
             services
@@ -82,6 +84,13 @@ namespace ManagementTasksManager
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Presentation v1"));
             }
+
+            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            {
+                var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
+                context.Database.Migrate();
+            }
+            
 
             app.UseHttpsRedirection();
 

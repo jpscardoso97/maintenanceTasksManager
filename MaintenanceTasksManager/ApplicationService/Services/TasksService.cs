@@ -7,16 +7,23 @@
     using ApplicationService.Models.Tasks;
     using ApplicationService.Services.Interfaces;
     using DataAccess.Repositories.Tasks.Interfaces;
+    using global::Messaging.Interfaces;
     using Microsoft.EntityFrameworkCore;
 
     public class TasksService : ITasksService
     {
         private const int MaxSize = 2500;
+        private const string RoutingKey = "task.created";
+
         private readonly ITasksRepository _tasksRepository;
+        private readonly IRabbitMQClient _rabbitMQClient;
         
-        public TasksService(ITasksRepository tasksRepository)
+        public TasksService(
+            ITasksRepository tasksRepository, 
+            IRabbitMQClient rabbitMQClient)
         {
             _tasksRepository = tasksRepository;
+            _rabbitMQClient = rabbitMQClient;
         }
         
         public async Task<IEnumerable<MaintenanceTask>> GetTasks()
@@ -41,7 +48,10 @@
             
             var newTask = TaskMapper.FromDto(await _tasksRepository.CreateTaskAsync(TaskMapper.ToDto(task)));
             
-            //TODO add message for notification
+            if(newTask != null)
+            {
+                _rabbitMQClient.PushMessage(RoutingKey, $"The tech {newTask.Owner} performed the task {newTask.Id} on date {newTask.Date.ToShortDateString()}");
+            }
 
             return newTask;
         }

@@ -15,23 +15,8 @@ COPY Tests.Presentation/*.csproj ./Tests.Presentation/
 
 RUN dotnet restore
 COPY . .
-WORKDIR /src/ApplicationService
-RUN dotnet build -c Release -o /app
-
-WORKDIR /src/Messaging
-RUN dotnet build -c Release -o /app
-
-WORKDIR /src/DataAccess
-RUN dotnet build -c Release -o /app
-
-WORKDIR /src/Presentation
-RUN dotnet build -c Release -o /app
-
-WORKDIR /src/Tests.ApplicationService
-RUN dotnet build -c Release -o /app
-
-WORKDIR /src/Tests.Presentation
-RUN dotnet build -c Release -o /app
+WORKDIR /src
+RUN dotnet build MaintenanceTasksManager.sln -c Release -o /app
 
 FROM build AS publish
 RUN dotnet publish -c Release -o /app
@@ -39,4 +24,4 @@ RUN dotnet publish -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "MaintenanceTasksManager.dll"]
+ENTRYPOINT ["dotnet", "Presentation.dll"]

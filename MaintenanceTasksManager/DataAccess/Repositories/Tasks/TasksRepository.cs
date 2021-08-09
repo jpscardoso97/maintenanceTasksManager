@@ -34,7 +34,9 @@
         public async Task<MaintenanceTask> CreateTaskAsync(MaintenanceTask task)
         {
             var result = await _dbContext.Tasks.AddAsync(task);
-            
+
+            await _dbContext.SaveChangesAsync();
+
             return result?.Entity;
         }
 
